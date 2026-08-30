@@ -48,6 +48,10 @@ def index():
 def download_logo_png():
     return send_from_directory('static', 'developer_ak_logo.png', as_attachment=True)
 
+@app.route('/')
+def index():
+    return send_from_directory('static', 'index.html')
+
 @app.route('/developer_ak_logo.svg')
 def download_logo_svg():
     return send_from_directory('static', 'developer_ak_logo.svg', as_attachment=True)
