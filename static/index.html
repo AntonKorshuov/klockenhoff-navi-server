@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANTON KORSHUNOV | Applications & Software Portfolio</title>
+    <link rel="icon" type="image/png" href="developer_ak_logo.png">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #22c55e;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        body.light-theme {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --card-border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --accent-blue: #0284c7;
+            --accent-green: #16a34a;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+        }
+
+        body.mono-theme {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --card-border: #333333;
+            --text-main: #ffffff;
+            --text-sub: #aaaaaa;
+            --accent-blue: #ffffff;
+            --accent-green: #dddddd;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
+            filter: grayscale(100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Header Navigation */
+        header {
+            width: 100%;
+            max-width: 1100px;
+            padding: 24px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-img {
+            height: 48px;
+            object-fit: contain;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        select, button {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        select:hover, button:hover {
+            border-color: var(--accent-blue);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 20px 40px 20px;
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-sub);
+            line-height: 1.6;
+        }
+
+        /* Main Content Grid */
+        main {
+            width: 100%;
+            max-width: 1100px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        /* App Card Style */
+        .app-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .app-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-blue);
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .app-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            object-fit: contain;
+            background: rgba(255,255,255,0.05);
+            padding: 6px;
+        }
+
+        .app-title-group h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .app-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-blue);
+            margin-top: 4px;
+        }
+
+        .app-desc {
+            font-size: 0.95rem;
+            color: var(--text-sub);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+            font-weight: 600;
+            padding: 12px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            font-weight: 600;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Footer */
+        footer {
+            width: 100%;
+            max-width: 1100px;
+            padding: 40px 20px;
+            text-align: center;
+            border-top: 1px solid var(--card-border);
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <img id="dev-logo" src="developer_ak_logo_white.png" class="logo-img" alt="AK Logo">
+        </div>
+
+        <div class="controls-group">
+            <!-- Theme Select -->
+            <select id="theme-select" onchange="setTheme(this.value)">
+                <option value="dark">🌙 Dark</option>
+                <option value="light">☀️ Light</option>
+                <option value="mono">🔳 Monochrome</option>
+            </select>
+
+            <!-- Language Select -->
+            <select id="lang-select" onchange="setLang(this.value)">
+                <option value="de">🇩🇪 DE</option>
+                <option value="en">🇬🇧 EN</option>
+                <option value="ru" selected>🇷🇺 RU</option>
+                <option value="pl">🇵🇱 PL</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h1 data-i18n="hero_title">Разработка программного обеспечения</h1>
+        <p data-i18n="hero_subtitle">Персональный каталог навигационных и логистических приложений для бизнеса и ежедневных задач.</p>
+    </div>
+
+    <main>
+        <h2 class="section-title">🚀 <span data-i18n="apps_title">Приложения</span></h2>
+
+        <div class="apps-grid">
+            <!-- APP 1: NAVI -->
+            <div class="app-card">
+                <div>
+                    <div class="app-header">
+                        <img src="logo_transparent.png" class="app-icon" alt="NAVI Icon">
+                        <div class="app-title-group">
+                            <h3>NAVI Navigation</h3>
+                            <span class="app-badge">v2.4 • Active</span>
+                        </div>
+                    </div>
+                    <p class="app-desc" data-i18n="navi_desc">
+                        Умная логистическая навигационная система с алгоритмом 2-Opt оптимизации закольцованных маршрутов. Поддерживает импорт клиентов из Excel, многоязычность и ночной режим.
+                    </p>
+                </div>
+
+                <div class="btn-group">
+                    <a href="NAVI.apk" class="btn-primary" download>
+                        📱 <span data-i18n="download_apk">Скачать APK (Android)</span>
+                    </a>
+                    <a href="http://127.0.0.1:5000/" target="_blank" class="btn-secondary">
+                        🌐 <span data-i18n="open_web">Открыть веб-версию</span>
+                    </a>
+                    <a href="Klockenhoff_Clients.xlsx" class="btn-secondary" download>
+                        📊 <span data-i18n="download_excel">Скачать базу Excel</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- APP 2: PLANNED APP PLACEHOLDER -->
+            <div class="app-card" style="opacity: 0.7;">
+                <div>
+                    <div class="app-header">
+                        <div class="app-icon" style="display:flex; align-items:center; justify-content:center; font-size:1.8rem; background:rgba(255,255,255,0.08);">⚡</div>
+                        <div class="app-title-group">
+                            <h3>Next Project</h3>
+                            <span class="app-badge" style="background:rgba(255,255,255,0.1); color:var(--text-sub);" data-i18n="badge_in_dev">В разработке</span>
+                        </div>
+                    </div>
+                    <p class="app-desc" data-i18n="next_app_desc">
+                        Новый логистический модуль для расширенного планирования поставок и отчетов. Скоро будет доступен для скачивания.
+                    </p>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-secondary" disabled style="cursor:not-allowed; opacity:0.6;">
+                        ⏳ <span data-i18n="coming_soon">Скоро анонс</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Anton Korshunov. <span data-i18n="footer_rights">Все права защищены. Speziell entwickelt für Klockenhoff GmbH.</span></p>
+    </footer>
+
+    <script>
+        const TRANSLATIONS = {
+            ru: {
+                hero_title: 'Разработка программного обеспечения',
+                hero_subtitle: 'Персональный каталог навигационных и логистических приложений для бизнеса и ежедневных задач.',
+                apps_title: 'Приложения',
+                navi_desc: 'Умная логистическая навигационная система с алгоритмом 2-Opt оптимизации закольцованных маршрутов. Поддерживает импорт клиентов из Excel, многоязычность и ночной режим.',
+                download_apk: 'Скачать APK (Android)',
+                open_web: 'Открыть веб-версию',
+                download_excel: 'Скачать базу Excel',
+                badge_in_dev: 'В разработке',
+                next_app_desc: 'Новый логистический модуль для расширенного планирования поставок и отчетов. Скоро будет доступен для скачивания.',
+                coming_soon: 'Скоро анонс',
+                footer_rights: 'Все права защищены. Speziell entwickelt für Klockenhoff GmbH.'
+            },
+            de: {
+                hero_title: 'Softwareentwicklung',
+                hero_subtitle: 'Persönlicher Katalog von Navigations- und Logistikanwendungen für Unternehmen.',
+                apps_title: 'Anwendungen',
+                navi_desc: 'Intelligentes Logistik-Navigationssystem mit 2-Opt-Algorithmus zur Routenoptimierung. Unterstützt Excel-Import, Mehrsprachigkeit und Nachtmodus.',
+                download_apk: 'APK herunterladen (Android)',
+                open_web: 'Webversion öffnen',
+                download_excel: 'Excel-Datenbank herunterladen',
+                badge_in_dev: 'In Entwicklung',
+                next_app_desc: 'Neues Logistikmodul für erweiterte Lieferplanung und Berichte. Demnächst verfügbar.',
+                coming_soon: 'Demnächst verfügbar',
+                footer_rights: 'Alle Rechte vorbehalten. Speziell entwickelt für Klockenhoff GmbH.'
+            },
+            en: {
+                hero_title: 'Software Development',
+                hero_subtitle: 'Personal portfolio of navigation and logistics applications for business tasks.',
+                apps_title: 'Applications',
+                navi_desc: 'Smart logistics navigation system with 2-Opt route optimization algorithm. Supports Excel import, multi-language support, and dark mode.',
+                download_apk: 'Download APK (Android)',
+                open_web: 'Open Web Version',
+                download_excel: 'Download Excel Database',
+                badge_in_dev: 'In Development',
+                next_app_desc: 'New logistics module for advanced delivery planning and reports. Coming soon.',
+                coming_soon: 'Coming Soon',
+                footer_rights: 'All rights reserved. Specially developed for Klockenhoff GmbH.'
+            },
+            pl: {
+                hero_title: 'Tworzenie Oprogramowania',
+                hero_subtitle: 'Osobisty katalog aplikacji nawigacyjnych i logistycznych dla biznesu.',
+                apps_title: 'Aplikacje',
+                navi_desc: 'Inteligentny system nawigacji logistycznej z algorytmem optymalizacji tras 2-Opt. Obsługuje import z pliku Excel, wielojęzyczność i tryb nocny.',
+                download_apk: 'Pobierz plik APK (Android)',
+                open_web: 'Otwórz wersję internetową',
+                download_excel: 'Pobierz bazę danych Excel',
+                badge_in_dev: 'W przygotowaniu',
+                next_app_desc: 'Nowy moduł logistyczny do zaawansowanego planowania dostaw i raportów. Wkrótce dostępny.',
+                coming_soon: 'Wkrótce',
+                footer_rights: 'Wszelkie prawa zastrzeżone. Specjalnie opracowany dla Klockenhoff GmbH.'
+            }
+        };
+
+        let currentLang = 'ru';
+        let currentTheme = 'dark';
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.body.classList.remove('light-theme', 'mono-theme');
+            const devLogo = document.getElementById('dev-logo');
+
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+                devLogo.src = 'developer_ak_logo.png';
+            } else if (theme === 'mono') {
+                document.body.classList.add('mono-theme');
+                devLogo.src = 'developer_ak_logo.png';
+            } else {
+                devLogo.src = 'developer_ak_logo_white.png';
+            }
+        }
+
+        function setLang(lang) {
+            currentLang = lang;
+            const t = TRANSLATIONS[lang] || TRANSLATIONS.ru;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+        }
+    </script>
+</body>
+</html>
