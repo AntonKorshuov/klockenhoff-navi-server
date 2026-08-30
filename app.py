@@ -41,15 +41,7 @@ def save_clients(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 @app.route('/')
-def index():
-    return send_from_directory('static', 'index.html')
-
-@app.route('/developer_ak_logo.png')
-def download_logo_png():
-    return send_from_directory('static', 'developer_ak_logo.png', as_attachment=True)
-
-@app.route('/')
-def index():
+def serve_index():
     return send_from_directory('static', 'index.html')
 
 @app.route('/developer_ak_logo.svg')
