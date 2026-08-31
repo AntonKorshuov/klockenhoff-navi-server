@@ -821,7 +821,7 @@
 
             <button type="button" class="btn btn-success" style="width:100%; padding:10px;" onclick="closeSettingsMenu()" data-i18n="btn_done">Готово</button>
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
-                Version v2.103
+                Version v2.104
             </div>
         </div>
     </div>
@@ -1017,16 +1017,21 @@
                 return nameA.localeCompare(nameB, 'de', { sensitivity: 'base' });
             });
 
-            // Populate tours dropdown in exact weekday order
+            // Populate tours dropdown in exact weekday order (clearing previous dynamic options to prevent duplicates)
             const tourOrder = ['Tour Mo', 'Tour Di', 'Tour Mi', 'Tour Do', 'Tour Fr'];
             const tourSelect = document.getElementById('tour-filter');
-            
-            tourOrder.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t;
-                opt.textContent = t;
-                tourSelect.appendChild(opt);
-            });
+            if (tourSelect) {
+                const currentVal = tourSelect.value;
+                const defaultLabel = (TRANSLATIONS[currentLang] || TRANSLATIONS.de).all_tours || 'Alle Touren';
+                tourSelect.innerHTML = `<option value="" data-i18n="all_tours">${defaultLabel}</option>`;
+                tourOrder.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t;
+                    opt.textContent = t;
+                    tourSelect.appendChild(opt);
+                });
+                tourSelect.value = currentVal;
+            }
 
             renderClients(allClients);
         }
