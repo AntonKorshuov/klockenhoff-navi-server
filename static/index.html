@@ -120,6 +120,54 @@
                 return new Response(JSON.stringify({ status: 'success', client: clientObj }), { status: 200, headers: {'Content-Type': 'application/json'} });
             }
 
+            // 2b. POST /api/clients/import (Batch import from Excel rows)
+            if (urlStr === '/api/clients/import' && method === 'POST') {
+                const body = JSON.parse(options.body || '{}');
+                const newClients = body.clients || [];
+                let db = getLocalClients();
+                let maxId = Math.max(...db.map(c => c.id || 0), 0);
+
+                let addedCount = 0;
+                for (const item of newClients) {
+                    maxId++;
+                    const name = item.name || item['Имя клиента'] || item['Kundenname'] || item['Name'] || item['Firma'] || item['Клиент'] || `Client ${maxId}`;
+                    const address = item.address || item['Полный адрес'] || item['Adresse'] || item['Адрес'] || '';
+                    const street = item.street || item['Улица и дом'] || item['Straße'] || item['Strasse'] || item['Улица'] || '';
+                    const plz = String(item.plz || item['Индекс (PLZ)'] || item['PLZ'] || item['Индекс'] || '');
+                    const city = item.city || item['Город (Ort)'] || item['Ort'] || item['Stadt'] || item['Город'] || '';
+                    const tour = item.tour || item['Тур (Tag)'] || item['Tour'] || item['Тур'] || item['Tag'] || '';
+
+                    let lat = item.lat || item['Широта (Lat)'] || item['Lat'];
+                    let lng = item.lng || item['Долгота (Lng)'] || item['Lng'] || item['Lon'];
+
+                    if (lat !== undefined && lng !== undefined && lat !== null && lng !== null) {
+                        lat = parseFloat(lat);
+                        lng = parseFloat(lng);
+                    }
+                    if (isNaN(lat) || isNaN(lng) || lat === null || lng === null) {
+                        lat = 51.5073323;
+                        lng = 7.4047794;
+                    }
+
+                    const clientObj = {
+                        id: maxId,
+                        name: String(name),
+                        address: String(address || `${street}, ${plz} ${city}`.trim()),
+                        plz: String(plz),
+                        city: String(city),
+                        street: String(street),
+                        tour: String(tour),
+                        lat: lat,
+                        lng: lng
+                    };
+                    db.push(clientObj);
+                    addedCount++;
+                }
+
+                saveLocalClients(db);
+                return new Response(JSON.stringify({ status: 'success', count: addedCount }), { status: 200, headers: {'Content-Type': 'application/json'} });
+            }
+
             // 3. DELETE /api/clients/<id>
             if (urlStr.startsWith('/api/clients/') && method === 'DELETE') {
                 const clientId = parseInt(urlStr.split('/').pop());
@@ -1588,18 +1636,36 @@
             if (!file) return;
 
             try {
-                const data = await file.arrayBuffer();
-                const workbook = XLSX.read(data);
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonRows = XLSX.utils.sheet_to_json(worksheet);
-
-                if (!jsonRows || jsonRows.length === 0) {
-                    alert('Файл пуст или имеет неверный формат / File is empty!');
+                if (typeof XLSX === 'undefined') {
+                    alert('Библиотека XLSX загружается, попробуйте еще раз через секунду.');
                     return;
                 }
 
-                // Send parsed rows to backend
+                let workbook;
+                try {
+                    const data = await file.arrayBuffer();
+                    workbook = XLSX.read(data, { type: 'array' });
+                } catch (e1) {
+                    // Fallback to binary string for Android WebView compatibility
+                    const dataText = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.onerror = reject;
+                        reader.readAsBinaryString(file);
+                    });
+                    workbook = XLSX.read(dataText, { type: 'binary' });
+                }
+
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+                if (!jsonRows || jsonRows.length === 0) {
+                    alert('Файл пуст или имеет неверный формат!');
+                    return;
+                }
+
+                // Send parsed rows to client-side DB adapter / API
                 const res = await fetch('/api/clients/import', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -1616,7 +1682,7 @@
                 }
             } catch (err) {
                 console.error('Error parsing Excel file:', err);
-                alert('Ошибка чтения файла Excel. Проверьте формат файла.');
+                alert('Ошибка чтения файла Excel: ' + (err.message || 'Проверьте формат файла'));
             } finally {
                 event.target.value = '';
             }
