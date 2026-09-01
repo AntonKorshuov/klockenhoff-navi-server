@@ -8,9 +8,7 @@
         window.EMBEDDED_ROUTES = [];
         
         // Client-side LocalStorage DB Persistence Adapter
-        // Clear old cached 215 clients from LocalStorage
-        localStorage.removeItem('klockenhoff_clients');
-        localStorage.removeItem('klockenhoff_routes');
+        // Client-side LocalStorage DB Persistence Adapter
         
         if (!localStorage.getItem('klockenhoff_clients')) {
             window.EMBEDDED_CLIENTS = [{"id": 0, "name": "Klockenhoff GmbH", "address": "44379 Dortmund, Bünnerhelfstraße 32", "tour": "Офис", "plz": "44379", "city": "Dortmund", "street": "Bünnerhelfstraße 32", "lat": 51.5073323, "lng": 7.4047794}];
@@ -834,7 +832,7 @@
 
             <button type="button" class="btn btn-success" style="width:100%; padding:10px;" onclick="closeSettingsMenu()" data-i18n="btn_done">Готово</button>
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
-                Version v2.115
+                Version v2.116
             </div>
         </div>
     </div>
