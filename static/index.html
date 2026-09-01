@@ -808,6 +808,11 @@
                 <button type="button" class="btn" style="width:100%; padding:10px; background:#27ae60; font-weight:600;" onclick="document.getElementById('excel-file-input').click()" data-i18n="btn_import_excel">📊 Загрузить файл Excel (.xlsx)</button>
             </div>
 
+            <!-- Export Clients to Excel -->
+            <div style="margin-bottom:18px;">
+                <button type="button" class="btn" style="width:100%; padding:10px; background:#3498db; color:white; font-weight:600;" onclick="exportClientsToExcel()" data-i18n="btn_export_excel">📊 Excel-Datei exportieren (.xlsx)</button>
+            </div>
+
             <!-- Language Select -->
             <div style="margin-bottom:24px;">
                 <label data-i18n="language_label" style="font-size:0.9rem; font-weight:600; display:block; margin-bottom:8px;">Язык интерфейса</label>
@@ -821,7 +826,7 @@
 
             <button type="button" class="btn btn-success" style="width:100%; padding:10px;" onclick="closeSettingsMenu()" data-i18n="btn_done">Готово</button>
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
-                Version v2.109
+                Version v2.110
             </div>
         </div>
     </div>
@@ -1637,7 +1642,7 @@
 
             try {
                 if (typeof XLSX === 'undefined') {
-                    alert('Библиотека XLSX загружается, попробуйте еще раз через секунду.');
+                    alert('Библиотека XLSX не загружена, проверьте подключение к интернету.');
                     return;
                 }
 
@@ -1665,7 +1670,7 @@
                 const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
                 if (!jsonRows || jsonRows.length === 0) {
-                    alert('Файл пуст или имеет неверный формат!');
+                    alert('Этот файл Excel не содержит данных!');
                     return;
                 }
 
@@ -1673,22 +1678,37 @@
                 let maxId = Math.max(...db.map(c => c.id || 0), 0);
                 let addedCount = 0;
 
+                // Function to find cell value matching multiple potential column headers
+                const getVal = (item, keys) => {
+                    for (const k of keys) {
+                        for (const prop of Object.keys(item)) {
+                            const cleanProp = prop.trim().toLowerCase();
+                            if (cleanProp === k.toLowerCase()) {
+                                return item[prop];
+                            }
+                        }
+                    }
+                    return '';
+                };
+
                 for (const item of jsonRows) {
                     maxId++;
-                    const name = item.name || item['Имя клиента'] || item['Kundenname'] || item['Name'] || item['Firma'] || item['Клиент'] || `Client ${maxId}`;
-                    const address = item.address || item['Полный адрес'] || item['Adresse'] || item['Адрес'] || '';
-                    const street = item.street || item['Улица и дом'] || item['Straße'] || item['Strasse'] || item['Улица'] || '';
-                    const plz = String(item.plz || item['Индекс (PLZ)'] || item['PLZ'] || item['Индекс'] || '');
-                    const city = item.city || item['Город (Ort)'] || item['Ort'] || item['Stadt'] || item['Город'] || '';
-                    const tour = item.tour || item['Тур (Tag)'] || item['Tour'] || item['Тур'] || item['Tag'] || '';
+                    const rawName = getVal(item, ['name', 'Имя клиента', 'Kundenname', 'Name', 'Firma', 'Клиент']);
+                    const name = rawName ? String(rawName).trim() : `Client ${maxId}`;
 
-                    let lat = item.lat || item['Широта (Lat)'] || item['Lat'];
-                    let lng = item.lng || item['Долгота (Lng)'] || item['Lng'] || item['Lon'];
+                    const address = String(getVal(item, ['address', 'Полный адрес', 'Adresse', 'Адрес'])).trim();
+                    const street = String(getVal(item, ['street', 'Улица и дом', 'Straße', 'Strasse', 'Улица', 'Straat'])).trim();
+                    const plz = String(getVal(item, ['plz', 'Индекс (PLZ)', 'PLZ', 'Индекс', 'Zip'])).trim();
+                    const city = String(getVal(item, ['city', 'Город (Ort)', 'Ort', 'Stadt', 'Город'])).trim();
+                    const tour = String(getVal(item, ['tour', 'Тур (Tag)', 'Tour', 'Тур', 'Tag'])).trim();
 
-                    if (lat !== undefined && lng !== undefined && lat !== null && lng !== null && String(lat).trim() !== '' && String(lng).trim() !== '') {
-                        lat = parseFloat(lat);
-                        lng = parseFloat(lng);
-                    } else {
+                    let latVal = getVal(item, ['lat', 'Широта (Lat)', 'Lat', 'Latitude']);
+                    let lngVal = getVal(item, ['lng', 'Долгота (Lng)', 'Lng', 'Lon', 'Longitude']);
+
+                    let lat = parseFloat(latVal);
+                    let lng = parseFloat(lngVal);
+
+                    if (isNaN(lat) || isNaN(lng)) {
                         lat = NaN;
                         lng = NaN;
                     }
@@ -1738,9 +1758,44 @@
                 closeSettingsMenu();
             } catch (err) {
                 console.error('Error parsing Excel file:', err);
-                alert('Ошибка чтения файла Excel: ' + (err.message || 'Проверьте формат файла'));
+                alert('Ошибка чтения файла Excel: ' + (err.message || 'неизвестная ошибка'));
             } finally {
                 event.target.value = '';
+            }
+        }
+
+        function exportClientsToExcel() {
+            try {
+                if (typeof XLSX === 'undefined') {
+                    alert('Библиотека XLSX не загружена.');
+                    return;
+                }
+
+                const clients = getLocalClients();
+                if (!clients || clients.length === 0) {
+                    alert('Список клиентов пуст!');
+                    return;
+                }
+
+                const exportRows = clients.map(c => ({
+                    'ID': c.id,
+                    'Имя клиента': c.name || '',
+                    'Улица и дом': c.street || '',
+                    'Индекс (PLZ)': c.plz || '',
+                    'Город (Ort)': c.city || '',
+                    'Тур (Tag)': c.tour || '',
+                    'Широта (Lat)': c.lat || '',
+                    'Долгота (Lng)': c.lng || ''
+                }));
+
+                const worksheet = XLSX.utils.json_to_sheet(exportRows);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Clients');
+
+                XLSX.writeFile(workbook, 'Klockenhoff_Clients.xlsx');
+            } catch (err) {
+                console.error('Error exporting Excel file:', err);
+                alert('Ошибка экспорта Excel: ' + (err.message || 'неизвестная ошибка'));
             }
         }
 
