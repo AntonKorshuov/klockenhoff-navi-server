@@ -1662,7 +1662,7 @@
 
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
 
-                Version v2.118
+                Version v2.119
 
             </div>
 
@@ -1858,6 +1858,11 @@
                     <input type="hidden" id="modal-lat" value="">
 
                     <input type="hidden" id="modal-lng" value="">
+
+                    <div style="margin-bottom:14px;">
+                        <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:4px; opacity:0.85;" data-i18n="coords_label">GPS-Koordinaten (Lat, Lng)</label>
+                        <input type="text" id="modal-coords-display" class="select-input" style="width:100%; padding:10px; font-size:0.95rem; background:var(--bg); color:var(--text); border:1px solid var(--border); opacity:0.8; cursor:not-allowed;" readonly placeholder="—">
+                    </div>
 
                     <div style="margin-bottom:14px; text-align:center;">
 
@@ -2099,6 +2104,13 @@
                     client.lat = foundLat;
                     client.lng = foundLng;
                     delete client.has_geo_error;
+
+                    // If client modal is currently open for this client, update coordinates live
+                    const openModalId = document.getElementById('modal-client-id') ? document.getElementById('modal-client-id').value : null;
+                    if (openModalId && String(openModalId) === String(client.id)) {
+                        const elemDisp = document.getElementById('modal-coords-display');
+                        if (elemDisp) elemDisp.value = `${Number(foundLat).toFixed(6)}, ${Number(foundLng).toFixed(6)}`;
+                    }
                 } else {
                     client.lat = null;
                     client.lng = null;
