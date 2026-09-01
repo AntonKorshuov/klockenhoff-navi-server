@@ -826,7 +826,7 @@
 
             <button type="button" class="btn btn-success" style="width:100%; padding:10px;" onclick="closeSettingsMenu()" data-i18n="btn_done">Готово</button>
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
-                Version v2.110
+                Version v2.111
             </div>
         </div>
     </div>
@@ -1678,12 +1678,25 @@
                 let maxId = Math.max(...db.map(c => c.id || 0), 0);
                 let addedCount = 0;
 
-                // Function to find cell value matching multiple potential column headers
+                // Smart fuzzy column value extractor
                 const getVal = (item, keys) => {
+                    // Pass 1: Exact / clean match
                     for (const k of keys) {
+                        const targetK = k.toLowerCase().trim();
                         for (const prop of Object.keys(item)) {
-                            const cleanProp = prop.trim().toLowerCase();
-                            if (cleanProp === k.toLowerCase()) {
+                            const cleanProp = prop.toLowerCase().trim();
+                            if (cleanProp === targetK) {
+                                return item[prop];
+                            }
+                        }
+                    }
+                    // Pass 2: Partial match (e.g. "Индекс (PLZ)" containing "plz" or "индекс")
+                    for (const k of keys) {
+                        const targetK = k.toLowerCase().trim();
+                        if (targetK.length < 2) continue;
+                        for (const prop of Object.keys(item)) {
+                            const cleanProp = prop.toLowerCase().trim();
+                            if (cleanProp.includes(targetK) || targetK.includes(cleanProp)) {
                                 return item[prop];
                             }
                         }
@@ -1693,17 +1706,17 @@
 
                 for (const item of jsonRows) {
                     maxId++;
-                    const rawName = getVal(item, ['name', 'Имя клиента', 'Kundenname', 'Name', 'Firma', 'Клиент']);
+                    const rawName = getVal(item, ['name', 'имя клиента', 'kundenname', 'name', 'firma', 'клиент']);
                     const name = rawName ? String(rawName).trim() : `Client ${maxId}`;
 
-                    const address = String(getVal(item, ['address', 'Полный адрес', 'Adresse', 'Адрес'])).trim();
-                    const street = String(getVal(item, ['street', 'Улица и дом', 'Straße', 'Strasse', 'Улица', 'Straat'])).trim();
-                    const plz = String(getVal(item, ['plz', 'Индекс (PLZ)', 'PLZ', 'Индекс', 'Zip'])).trim();
-                    const city = String(getVal(item, ['city', 'Город (Ort)', 'Ort', 'Stadt', 'Город'])).trim();
-                    const tour = String(getVal(item, ['tour', 'Тур (Tag)', 'Tour', 'Тур', 'Tag'])).trim();
+                    const address = String(getVal(item, ['address', 'полный адрес', 'adresse', 'адрес'])).trim();
+                    const street = String(getVal(item, ['street', 'улица и дом', 'straße', 'strasse', 'улица', 'straat'])).trim();
+                    const plz = String(getVal(item, ['plz', 'индекс (plz)', 'plz', 'индекс', 'zip'])).trim();
+                    const city = String(getVal(item, ['city', 'город (ort)', 'ort', 'stadt', 'город'])).trim();
+                    const tour = String(getVal(item, ['tour', 'тур (tag)', 'tour', 'тур', 'tag'])).trim();
 
-                    let latVal = getVal(item, ['lat', 'Широта (Lat)', 'Lat', 'Latitude']);
-                    let lngVal = getVal(item, ['lng', 'Долгота (Lng)', 'Lng', 'Lon', 'Longitude']);
+                    let latVal = getVal(item, ['lat', 'широта (lat)', 'lat', 'latitude']);
+                    let lngVal = getVal(item, ['lng', 'долгота (lng)', 'lng', 'lon', 'longitude']);
 
                     let lat = parseFloat(latVal);
                     let lng = parseFloat(lngVal);
