@@ -821,7 +821,7 @@
 
             <button type="button" class="btn btn-success" style="width:100%; padding:10px;" onclick="closeSettingsMenu()" data-i18n="btn_done">Готово</button>
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
-                Version v2.108
+                Version v2.109
             </div>
         </div>
     </div>
@@ -1685,11 +1685,33 @@
                     let lat = item.lat || item['Широта (Lat)'] || item['Lat'];
                     let lng = item.lng || item['Долгота (Lng)'] || item['Lng'] || item['Lon'];
 
-                    if (lat !== undefined && lng !== undefined && lat !== null && lng !== null) {
+                    if (lat !== undefined && lng !== undefined && lat !== null && lng !== null && String(lat).trim() !== '' && String(lng).trim() !== '') {
                         lat = parseFloat(lat);
                         lng = parseFloat(lng);
+                    } else {
+                        lat = NaN;
+                        lng = NaN;
                     }
-                    if (isNaN(lat) || isNaN(lng) || lat === null || lng === null) {
+
+                    // Auto-geocode via Nominatim if Excel row does not specify explicit coordinates
+                    if (isNaN(lat) || isNaN(lng)) {
+                        const fullAddr = `${street}, ${plz} ${city}`.trim().replace(/^,\s*/, '') || address;
+                        if (fullAddr) {
+                            try {
+                                const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddr)}&limit=1`);
+                                const geoData = await geoRes.json();
+                                if (geoData && geoData.length > 0) {
+                                    lat = parseFloat(geoData[0].lat);
+                                    lng = parseFloat(geoData[0].lon);
+                                }
+                            } catch (eGeo) {
+                                console.error('Geocoding failed for imported row:', fullAddr, eGeo);
+                            }
+                        }
+                    }
+
+                    // Fallback to office coordinates only if geocoding also returned no match
+                    if (isNaN(lat) || isNaN(lng)) {
                         lat = 51.5073323;
                         lng = 7.4047794;
                     }
