@@ -834,7 +834,7 @@
 
             <button type="button" class="btn btn-success" style="width:100%; padding:10px;" onclick="closeSettingsMenu()" data-i18n="btn_done">Готово</button>
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
-                Version v2.114
+                Version v2.115
             </div>
         </div>
     </div>
@@ -1092,18 +1092,15 @@
                     client.lng = foundLng;
                     delete client.has_geo_error;
                 } else {
-                    // Mark as geo_attempted & error, leave lat/lng null
                     client.lat = null;
                     client.lng = null;
                     client.has_geo_error = true;
                     client.geo_attempted = true;
                 }
 
-                // Update LocalStorage and UI card immediately
                 saveLocalClients(allClients);
                 filterClients();
 
-                // Respect Nominatim rate limit (1.2s delay between requests)
                 await new Promise(r => setTimeout(r, 1200));
             }
 
@@ -1111,4 +1108,8 @@
             if (banner) banner.style.display = 'none';
         }
 
-a
+        // Run App Initialization on Load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
