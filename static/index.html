@@ -821,7 +821,7 @@
 
             <button type="button" class="btn btn-success" style="width:100%; padding:10px;" onclick="closeSettingsMenu()" data-i18n="btn_done">Готово</button>
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
-                Version v2.107
+                Version v2.108
             </div>
         </div>
     </div>
@@ -1150,35 +1150,55 @@
         }
 
         function useCurrentLocationForClient() {
-            if (!confirm('изменить координаты на текущие?')) return;
+            const tr = TRANSLATIONS[currentLang] || TRANSLATIONS.de;
+            const confirmMsg = tr.gps_confirm_msg || 'Использовать текущие координаты?';
+            if (!confirm(confirmMsg)) return;
 
             if (!navigator.geolocation) {
-                alert('Геолокация не поддерживается вашим браузером');
+                alert(tr.gps_error_alert || 'Геолокация не поддерживается вашим устройством.');
                 return;
             }
 
             const btn = document.getElementById('btn-current-coords');
-            btn.textContent = '⏳ Получение GPS координат...';
+            btn.textContent = tr.gps_getting_coords || '📍 Получение координат GPS...';
             btn.disabled = true;
 
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    document.getElementById('modal-lat').value = lat;
-                    document.getElementById('modal-lng').value = lng;
+            const onSuccess = (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                document.getElementById('modal-lat').value = lat;
+                document.getElementById('modal-lng').value = lng;
 
-                    btn.textContent = '✅ Координаты обновлены (сохраните карту)';
-                    btn.style.background = '#27ae60';
-                    btn.disabled = false;
-                },
-                (err) => {
-                    alert('Не удалось получить текущую геолокацию. Убедитесь, что GPS включен.');
+                btn.textContent = tr.gps_coords_obtained || '📍 Координаты получены (Успешно)';
+                btn.style.background = '#27ae60';
+                btn.disabled = false;
+            };
+
+            const onError = (err) => {
+                // Try low accuracy fallback if high accuracy timed out
+                if (err.code === 3 || err.code === 2) {
+                    navigator.geolocation.getCurrentPosition(
+                        onSuccess,
+                        (fallbackErr) => {
+                            alert(tr.gps_error_alert || 'Не удалось получить геолокацию. Проверьте включен ли GPS.');
+                            btn.textContent = '📍 AKTUELLE KOORDINATEN';
+                            btn.style.background = '#f39c12';
+                            btn.disabled = false;
+                        },
+                        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+                    );
+                } else {
+                    alert(tr.gps_error_alert || 'Не удалось получить геолокацию. Проверьте разрешения.');
                     btn.textContent = '📍 AKTUELLE KOORDINATEN';
                     btn.style.background = '#f39c12';
                     btn.disabled = false;
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
+                }
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                onSuccess,
+                onError,
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }
 
@@ -1433,7 +1453,11 @@
                 excel_col_plz: 'PLZ',
                 excel_col_city: 'Ort',
                 excel_col_tour: 'Tour (z. B. Tour Mo, Tour Di)',
-                excel_import_success: 'Erfolgreich {count} Kunden importiert!'
+                excel_import_success: 'Erfolgreich {count} Kunden importiert!',
+                gps_getting_coords: '📍 GPS-Koordinaten werden abgerufen...',
+                gps_coords_obtained: '📍 Koordinaten erhalten (Erfolgreich)',
+                gps_error_alert: 'GPS-Standort konnte nicht abgerufen werden. Bitte stellen Sie sicher, dass GPS aktiviert ist und die Standorterlaubnis erteilt wurde.',
+                gps_confirm_msg: 'Aktuelle GPS-Koordinaten übernehmen?'
             },
             en: {
                 menu_title: 'Settings',
@@ -1483,7 +1507,11 @@
                 excel_col_plz: 'ZIP Code',
                 excel_col_city: 'City',
                 excel_col_tour: 'Tour (e.g. Tour Mo, Tour Di)',
-                excel_import_success: 'Successfully imported {count} clients!'
+                excel_import_success: 'Successfully imported {count} clients!',
+                gps_getting_coords: '📍 Fetching GPS coordinates...',
+                gps_coords_obtained: '📍 Coordinates obtained (Success)',
+                gps_error_alert: 'Unable to get current GPS location. Please make sure GPS is enabled and location permission is granted.',
+                gps_confirm_msg: 'Use current GPS location?'
             },
             ru: {
                 menu_title: 'Настройки',
@@ -1533,7 +1561,11 @@
                 excel_col_plz: 'Индекс (PLZ)',
                 excel_col_city: 'Город (Ort)',
                 excel_col_tour: 'Тур (напр., Tour Mo, Tour Di)',
-                excel_import_success: 'Успешно импортировано клиентов: {count}!'
+                excel_import_success: 'Успешно импортировано клиентов: {count}!',
+                gps_getting_coords: '📍 Получение координат GPS...',
+                gps_coords_obtained: '📍 Координаты получены (Успешно)',
+                gps_error_alert: 'Не удалось получить текущую геолокацию. Убедитесь, что GPS включен и приложению предоставлено разрешение на местоположение.',
+                gps_confirm_msg: 'Использовать текущие координаты?'
             },
             pl: {
                 menu_title: 'Ustawienia',
@@ -1583,7 +1615,11 @@
                 excel_col_plz: 'Kod pocztowy',
                 excel_col_city: 'Miejscowość',
                 excel_col_tour: 'Trasa (np. Tour Mo, Tour Di)',
-                excel_import_success: 'Pomyślnie zaimportowano {count} klientów!'
+                excel_import_success: 'Pomyślnie zaimportowano {count} klientów!',
+                gps_getting_coords: '📍 Pobieranie współrzędnych GPS...',
+                gps_coords_obtained: '📍 Pobrano współrzędne (Sukces)',
+                gps_error_alert: 'Nie udało się pobrać aktualnej lokalizacji GPS. Upewnij się, że GPS jest włączony i przyznano uprawnienia do lokalizacji.',
+                gps_confirm_msg: 'Użyć aktualnej lokalizacji GPS?'
             }
         };
 
