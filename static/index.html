@@ -826,7 +826,7 @@
 
             <button type="button" class="btn btn-success" style="width:100%; padding:10px;" onclick="closeSettingsMenu()" data-i18n="btn_done">Готово</button>
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
-                Version v2.112
+                Version v2.113
             </div>
         </div>
     </div>
@@ -919,6 +919,10 @@
                     </div>
                     <input type="hidden" id="modal-lat" value="">
                     <input type="hidden" id="modal-lng" value="">
+                    <div style="margin-bottom:14px;">
+                        <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:4px; opacity:0.85;" data-i18n="coords_label">GPS-Koordinaten (Lat, Lng)</label>
+                        <input type="text" id="modal-coords-display" class="select-input" style="width:100%; padding:10px; font-size:0.95rem; background:var(--bg); color:var(--text); border:1px solid var(--border); opacity:0.8; cursor:not-allowed;" readonly placeholder="—">
+                    </div>
                     <div style="margin-bottom:14px; text-align:center;">
                         <button type="button" id="btn-current-coords" class="btn" style="width:100%; background:#f39c12; color:white; padding:8px; font-size:0.88rem; display:none;" onclick="useCurrentLocationForClient()" data-i18n="btn_current_coords">📍 AKTUELLE KOORDINATEN</button>
                     </div>
@@ -1141,6 +1145,9 @@
             document.getElementById('modal-client-id').value = client.id;
             document.getElementById('modal-lat').value = client.lat || '';
             document.getElementById('modal-lng').value = client.lng || '';
+            const cLat = (client.lat !== undefined && client.lat !== null && !isNaN(client.lat)) ? Number(client.lat).toFixed(6) : '';
+            const cLng = (client.lng !== undefined && client.lng !== null && !isNaN(client.lng)) ? Number(client.lng).toFixed(6) : '';
+            document.getElementById('modal-coords-display').value = (cLat && cLng) ? `${cLat}, ${cLng}` : '—';
             document.getElementById('modal-title').textContent = 'Kundenkarte';
             document.getElementById('btn-delete-client').style.display = 'inline-block';
             document.getElementById('btn-current-coords').style.display = 'block';
@@ -1173,6 +1180,7 @@
                 const lng = pos.coords.longitude;
                 document.getElementById('modal-lat').value = lat;
                 document.getElementById('modal-lng').value = lng;
+                document.getElementById('modal-coords-display').value = `${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}`;
 
                 btn.textContent = tr.gps_coords_obtained || '📍 Координаты получены (Успешно)';
                 btn.style.background = '#27ae60';
