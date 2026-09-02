@@ -1657,7 +1657,7 @@
 
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
 
-                Version v2.137
+                Version v2.138
 
             </div>
 
@@ -1840,7 +1840,7 @@
                     </div>
 
                     <div style="margin-bottom:12px;">
-                        <label style="font-size:0.85rem; font-weight:600; color:#34495e; display:block; margin-bottom:4px;">📍 GPS</label>
+                        <label style="font-size:0.85rem; font-weight:600; color:#34495e; display:block; margin-bottom:4px;">GPS</label>
                         <div style="display:flex; gap:8px;">
                             <input type="text" id="modal-lat" class="search-input" style="flex:1;" placeholder="">
                             <input type="text" id="modal-lng" class="search-input" style="flex:1;" placeholder="">
@@ -2126,9 +2126,8 @@
 
                 const hasCoords = client.lat !== null && client.lng !== null && client.lat !== undefined && client.lng !== undefined && !isNaN(client.lat) && !isNaN(client.lng);
                 const gpsBadge = hasCoords 
-                    ? `<span style="background:#27ae60; color:white; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:3px; margin-left:4px;">📍 GPS</span>`
-                    : `<span style="background:#e74c3c; color:white; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:3px; margin-left:4px;">📍 GPS</span>`;
-
+                    ? `<span style="background:#27ae60; color:white; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; margin-left:4px;">GPS</span>`
+                    : `<span style="background:#e74c3c; color:white; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; margin-left:4px;">GPS</span>`;
                 card.innerHTML = `
                     <input type="checkbox" ${isChecked ? 'checked' : ''} onclick="toggleClient(${client.id}, event)">
                     <div class="client-info" onclick="toggleClient(${client.id}, event)" style="flex:1;">
@@ -2907,7 +2906,7 @@
 
                 excel_import_success: 'Erfolgreich {count} Kunden importiert!',
 
-                gps_getting_coords: '📍 GPS-Koordinaten werden abgerufen...',
+                gps_getting_coords: 'GPS-Koordinaten werden abgerufen...',
 
                 gps_coords_obtained: '📍 Koordinaten erhalten (Erfolgreich)',
 
