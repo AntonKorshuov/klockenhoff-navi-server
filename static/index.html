@@ -140,7 +140,10 @@
 
                         try {
 
-                            const geoRes = await _originalFetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+                            let geoRes = await _originalFetch(`https://us1.locationiq.com/v1/search?key=pk.8732c5108a9f07f45b53e825a07c13a8&q=${encodeURIComponent(q)}&format=json&limit=1`);
+                            if (!geoRes.ok) {
+                                geoRes = await _originalFetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+                            }
 
                             const geoData = await geoRes.json();
 
@@ -1662,7 +1665,7 @@
 
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
 
-                Version v2.120
+                Version v2.121
 
             </div>
 
@@ -2107,7 +2110,10 @@
 
                 if (fullAddr && fullAddr.length > 3) {
                     try {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddr)}&limit=1`);
+                        let res = await fetch(`https://us1.locationiq.com/v1/search?key=pk.8732c5108a9f07f45b53e825a07c13a8&q=${encodeURIComponent(fullAddr)}&format=json&limit=1`);
+                        if (!res.ok) {
+                            res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddr)}&limit=1`);
+                        }
                         const data = await res.json();
                         if (data && data.length > 0) {
                             foundLat = parseFloat(data[0].lat);
@@ -2138,7 +2144,7 @@
                 saveLocalClients(allClients);
                 filterClients();
 
-                await new Promise(r => setTimeout(r, 1200));
+                await new Promise(r => setTimeout(r, 150));
             }
 
             isGeocodingQueueRunning = false;
