@@ -1657,7 +1657,7 @@
 
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
 
-                Version v2.131
+                Version v2.132
 
             </div>
 
@@ -1839,9 +1839,13 @@
 
                     </div>
 
-                    <input type="hidden" id="modal-lat" value="">
-
-                    <input type="hidden" id="modal-lng" value="">
+                    <div style="margin-bottom:12px;">
+                        <label style="font-size:0.85rem; font-weight:600; color:#34495e; display:block; margin-bottom:4px;">📍 Координаты (Lat, Lng)</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="modal-lat" class="search-input" style="flex:1;" placeholder="Широта (51.12345)" onchange="updateCoordsFromInputs()">
+                            <input type="text" id="modal-lng" class="search-input" style="flex:1;" placeholder="Долгота (7.12345)" onchange="updateCoordsFromInputs()">
+                        </div>
+                    </div>
 
                     <div style="margin-bottom:14px; text-align:center;">
 
