@@ -1535,6 +1535,14 @@
             border: 1px solid #e74c3c !important;
             background-color: rgba(231, 76, 60, 0.08) !important;
         }
+            @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .geo-error-card {
+            border: 1px solid #e74c3c !important;
+            background-color: rgba(231, 76, 60, 0.08) !important;
+        }
     </style>
 
 </head>
@@ -1774,6 +1782,17 @@
                 <div style="display:flex; align-items:center; gap:8px;">
                     <span id="bg-geocode-icon" style="animation: spin 1.5s linear infinite; display:inline-block;">🔄</span>
                     <span id="bg-geocode-status-text">Статус GPS: Загрузка клиентов...</span>
+                </div>
+                <div style="width:70px; height:6px; background:rgba(0,0,0,0.15); border-radius:3px; overflow:hidden;">
+                    <div id="bg-geocode-progress-fill" style="width:0%; height:100%; background:#1e88e5; transition:width 0.3s;"></div>
+                </div>
+            </div>
+
+            <!-- Background Geocoding Progress Banner -->
+            <div id="bg-geocode-banner" style="display:none; background:rgba(30,136,229,0.12); border:1px solid #1e88e5; border-radius:8px; padding:8px 12px; margin-bottom:10px; font-size:0.82rem; color:var(--text); align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="animation: spin 1.5s linear infinite; display:inline-block;">🔄</span>
+                    <span id="bg-geocode-status-text">Определение координат: 0 / 0</span>
                 </div>
                 <div style="width:70px; height:6px; background:rgba(0,0,0,0.15); border-radius:3px; overflow:hidden;">
                     <div id="bg-geocode-progress-fill" style="width:0%; height:100%; background:#1e88e5; transition:width 0.3s;"></div>
@@ -2036,7 +2055,7 @@
 
         // Initialize App
 
-        async         function openSettingsMenu() {
+        function openSettingsMenu() {
             const modal = document.getElementById('settings-modal');
             if (modal) modal.style.display = 'flex';
         }
@@ -2173,3 +2192,79 @@
         }
 
         
+        let isGeocodingQueueRunning = false;
+
+        async function triggerBackgroundGeocoding() {
+            if (isGeocodingQueueRunning) return;
+
+            const missingClients = allClients.filter(c => {
+                if (c.id === 0) return false;
+                const hasLat = c.lat !== undefined && c.lat !== null && !isNaN(c.lat);
+                const hasLng = c.lng !== undefined && c.lng !== null && !isNaN(c.lng);
+                return (!hasLat || !hasLng) && !c.has_geo_error;
+            });
+
+            if (missingClients.length === 0) {
+                const banner = document.getElementById('bg-geocode-banner');
+                if (banner) banner.style.display = 'none';
+                return;
+            }
+
+            isGeocodingQueueRunning = true;
+            const banner = document.getElementById('bg-geocode-banner');
+            const statusText = document.getElementById('bg-geocode-status-text');
+            const progressFill = document.getElementById('bg-geocode-progress-fill');
+            if (banner) banner.style.display = 'flex';
+
+            const totalCount = missingClients.length;
+            let processedCount = 0;
+
+            for (const client of missingClients) {
+                processedCount++;
+                const percent = Math.round((processedCount / totalCount) * 100);
+                if (statusText) statusText.textContent = `Определение координат: ${processedCount} / ${totalCount} (${percent}%)`;
+                if (progressFill) progressFill.style.width = `${percent}%`;
+
+                const fullAddr = `${client.street || ''}, ${client.plz || ''} ${client.city || ''}`.trim().replace(/^,\s*/, '') || client.address;
+
+                let foundLat = null;
+                let foundLng = null;
+
+                if (fullAddr && fullAddr.length > 3) {
+                    try {
+                        let res = await fetch(`https://us1.locationiq.com/v1/search?key=pk.8732c5108a9f07f45b53e825a07c13a8&q=${encodeURIComponent(fullAddr)}&format=json&limit=1`);
+                        if (!res.ok) {
+                            res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddr)}&limit=1`);
+                        }
+                        const data = await res.json();
+                        if (data && data.length > 0) {
+                            foundLat = parseFloat(data[0].lat);
+                            foundLng = parseFloat(data[0].lon);
+                        }
+                    } catch (eErr) {
+                        console.error('BG geocode error for client', client.id, eErr);
+                    }
+                }
+
+                if (foundLat !== null && foundLng !== null && !isNaN(foundLat) && !isNaN(foundLng)) {
+                    client.lat = foundLat;
+                    client.lng = foundLng;
+                    delete client.has_geo_error;
+                } else {
+                    client.lat = null;
+                    client.lng = null;
+                    client.has_geo_error = true;
+                    client.geo_attempted = true;
+                }
+
+                saveLocalClients(allClients);
+                filterClients();
+
+                await new Promise(r => setTimeout(r, 150));
+            }
+
+            isGeocodingQueueRunning = false;
+            if (banner) banner.style.display = 'none';
+        }
+
+
