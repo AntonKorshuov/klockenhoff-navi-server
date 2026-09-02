@@ -2065,18 +2065,12 @@
             if (modal) modal.style.display = 'none';
         }
 
-        function init() {
-
+        async function init() {
             setTheme(currentTheme);
-
             applyLanguage();
-
             initMap();
-
             await fetchClients();
-
             await fetchSavedRoute();
-
         }
 
 
