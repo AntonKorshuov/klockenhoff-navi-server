@@ -737,7 +737,27 @@
 
         }
 
-        body.mono-mode .tag {
+        body.mono-mode .gps-tag-green {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #27ae60;
+            color: #ffffff;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .gps-tag-red {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #e74c3c;
+            color: #ffffff;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .tag {
 
             background: #eeeeee !important;
 
@@ -1657,7 +1677,7 @@
 
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
 
-                Version v2.138
+                Version v2.139
 
             </div>
 
@@ -2126,8 +2146,8 @@
 
                 const hasCoords = client.lat !== null && client.lng !== null && client.lat !== undefined && client.lng !== undefined && !isNaN(client.lat) && !isNaN(client.lng);
                 const gpsBadge = hasCoords 
-                    ? `<span style="background:#27ae60; color:white; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; margin-left:4px;">GPS</span>`
-                    : `<span style="background:#e74c3c; color:white; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; margin-left:4px;">GPS</span>`;
+                    ? `<span class="gps-tag-green">GPS</span>`
+                    : `<span class="gps-tag-red">GPS</span>`;
                 card.innerHTML = `
                     <input type="checkbox" ${isChecked ? 'checked' : ''} onclick="toggleClient(${client.id}, event)">
                     <div class="client-info" onclick="toggleClient(${client.id}, event)" style="flex:1;">
