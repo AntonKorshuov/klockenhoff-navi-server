@@ -1657,7 +1657,7 @@
 
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
 
-                Version v2.136
+                Version v2.137
 
             </div>
 
@@ -2112,60 +2112,40 @@
 
 
         function renderClients(list) {
-
             const container = document.getElementById('client-container');
-
             container.innerHTML = '';
 
-
-
             list.forEach(client => {
-
                 if (client.id === 0) return; // Skip office in main list
 
-
-
                 const card = document.createElement('div');
-
                 card.className = 'client-card';
-
                 
-
                 const isChecked = selectedClientIds.has(client.id);
-
                 const displayName = cleanClientName(client.name);
 
-
+                const hasCoords = client.lat !== null && client.lng !== null && client.lat !== undefined && client.lng !== undefined && !isNaN(client.lat) && !isNaN(client.lng);
+                const gpsBadge = hasCoords 
+                    ? `<span style="background:#27ae60; color:white; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:3px; margin-left:4px;">📍 GPS</span>`
+                    : `<span style="background:#e74c3c; color:white; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:3px; margin-left:4px;">📍 GPS</span>`;
 
                 card.innerHTML = `
-
                     <input type="checkbox" ${isChecked ? 'checked' : ''} onclick="toggleClient(${client.id}, event)">
-
                     <div class="client-info" onclick="toggleClient(${client.id}, event)" style="flex:1;">
-
                         <div class="client-title">${displayName}</div>
-
                         <div class="client-addr">${client.address}</div>
-
-                        ${client.tour ? `<span class="tag">${client.tour}</span>` : ''}
-
+                        <div style="margin-top:6px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                            ${client.tour ? `<span class="tag">${client.tour}</span>` : ''}
+                            ${gpsBadge}
+                        </div>
                     </div>
-
                     <button onclick="event.stopPropagation(); openEditClientModal(${client.id})" style="background:#f1f3f5; border:1px solid #dcdfe6; border-radius:6px; padding:6px 10px; font-size:0.95rem; cursor:pointer; align-self:center;" title="Kundenkarte öffnen">✏️</button>
-
                 `;
-
                 container.appendChild(card);
-
             });
 
-
-
             updateSelectedCount();
-
         }
-
-
 
         function toggleClient(id, e) {
 
