@@ -1673,7 +1673,7 @@
 
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
 
-                Version v2.121
+                Version v2.124
 
             </div>
 
@@ -2036,7 +2036,17 @@
 
         // Initialize App
 
-        async function init() {
+        async         function openSettingsMenu() {
+            const modal = document.getElementById('settings-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeSettingsMenu() {
+            const modal = document.getElementById('settings-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function init() {
 
             setTheme(currentTheme);
 
