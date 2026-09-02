@@ -1657,7 +1657,7 @@
 
             <div style="text-align:center; margin-top:14px; font-size:0.78rem; color:#95a5a6; font-weight:600;">
 
-                Version v2.130
+                Version v2.131
 
             </div>
 
@@ -3278,263 +3278,122 @@
 
 
         async function handleExcelFileUpload(event) {
-
             const file = event.target.files[0];
-
             if (!file) return;
 
-
-
             try {
-
                 if (typeof XLSX === 'undefined') {
-
                     alert('Библиотека XLSX не загружена, проверьте подключение к интернету.');
-
                     return;
-
                 }
-
-
 
                 let workbook;
-
                 try {
-
                     const buffer = await new Promise((resolve, reject) => {
-
                         const reader = new FileReader();
-
                         reader.onload = (e) => resolve(e.target.result);
-
                         reader.onerror = reject;
-
                         reader.readAsArrayBuffer(file);
-
                     });
-
                     workbook = XLSX.read(buffer, { type: 'array' });
-
                 } catch (e1) {
-
                     const dataText = await new Promise((resolve, reject) => {
-
                         const reader = new FileReader();
-
                         reader.onload = (e) => resolve(e.target.result);
-
                         reader.onerror = reject;
-
                         reader.readAsBinaryString(file);
-
                     });
-
                     workbook = XLSX.read(dataText, { type: 'binary' });
-
                 }
-
-
 
                 const firstSheetName = workbook.SheetNames[0];
-
                 const worksheet = workbook.Sheets[firstSheetName];
-
                 const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
-
-
                 if (!jsonRows || jsonRows.length === 0) {
-
                     alert('Этот файл Excel не содержит данных!');
-
                     return;
-
                 }
-
-
 
                 let db = getLocalClients();
-
                 let maxId = Math.max(...db.map(c => c.id || 0), 0);
-
                 let addedCount = 0;
 
-
-
-                // Function to find cell value matching multiple potential column headers
-
+                // Smart fuzzy column extractor
                 const getVal = (item, keys) => {
-
+                    // Pass 1: Exact / clean match
                     for (const k of keys) {
-
+                        const targetK = k.toLowerCase().trim();
                         for (const prop of Object.keys(item)) {
-
-                            const cleanProp = prop.trim().toLowerCase();
-
-                            if (cleanProp === k.toLowerCase()) {
-
+                            const cleanProp = prop.toLowerCase().trim();
+                            if (cleanProp === targetK) {
                                 return item[prop];
-
                             }
-
                         }
-
                     }
-
+                    // Pass 2: Partial match (e.g. "Индекс (PLZ)" containing "plz" or "индекс")
+                    for (const k of keys) {
+                        const targetK = k.toLowerCase().trim();
+                        if (targetK.length < 2) continue;
+                        for (const prop of Object.keys(item)) {
+                            const cleanProp = prop.toLowerCase().trim();
+                            if (cleanProp.includes(targetK) || targetK.includes(cleanProp)) {
+                                return item[prop];
+                            }
+                        }
+                    }
                     return '';
-
                 };
 
-
-
                 for (const item of jsonRows) {
-
                     maxId++;
-
-                    const rawName = getVal(item, ['name', 'Имя клиента', 'Kundenname', 'Name', 'Firma', 'Клиент']);
-
+                    const rawName = getVal(item, ['name', 'имя клиента', 'kundenname', 'name', 'firma', 'клиент']);
                     const name = rawName ? String(rawName).trim() : `Client ${maxId}`;
 
+                    const address = String(getVal(item, ['address', 'полный адрес', 'adresse', 'адрес'])).trim();
+                    const street = String(getVal(item, ['street', 'улица и дом', 'straße', 'strasse', 'улица', 'straat'])).trim();
+                    const plz = String(getVal(item, ['plz', 'индекс (plz)', 'plz', 'индекс', 'zip'])).trim();
+                    const city = String(getVal(item, ['city', 'город (ort)', 'ort', 'stadt', 'город'])).trim();
+                    const tour = String(getVal(item, ['tour', 'тур (tag)', 'tour', 'тур', 'tag'])).trim();
 
-
-                    const address = String(getVal(item, ['address', 'Полный адрес', 'Adresse', 'Адрес'])).trim();
-
-                    const street = String(getVal(item, ['street', 'Улица и дом', 'Straße', 'Strasse', 'Улица', 'Straat'])).trim();
-
-                    const plz = String(getVal(item, ['plz', 'Индекс (PLZ)', 'PLZ', 'Индекс', 'Zip'])).trim();
-
-                    const city = String(getVal(item, ['city', 'Город (Ort)', 'Ort', 'Stadt', 'Город'])).trim();
-
-                    const tour = String(getVal(item, ['tour', 'Тур (Tag)', 'Tour', 'Тур', 'Tag'])).trim();
-
-
-
-                    let latVal = getVal(item, ['lat', 'Широта (Lat)', 'Lat', 'Latitude']);
-
-                    let lngVal = getVal(item, ['lng', 'Долгота (Lng)', 'Lng', 'Lon', 'Longitude']);
-
-
+                    let latVal = getVal(item, ['lat', 'широта (lat)', 'lat', 'latitude']);
+                    let lngVal = getVal(item, ['lng', 'долгота (lng)', 'lng', 'lon', 'longitude']);
 
                     let lat = parseFloat(latVal);
-
                     let lng = parseFloat(lngVal);
 
-
-
                     if (isNaN(lat) || isNaN(lng)) {
-
-                        lat = NaN;
-
-                        lng = NaN;
-
+                        lat = null;
+                        lng = null;
                     }
-
-
-
-                    // Auto-geocode via Nominatim if Excel row does not specify explicit coordinates
-
-                    if (isNaN(lat) || isNaN(lng)) {
-
-                        const fullAddr = `${street}, ${plz} ${city}`.trim().replace(/^,\s*/, '') || address;
-
-                        if (fullAddr) {
-
-                            try {
-
-                                let geoRes = await fetch(`https://us1.locationiq.com/v1/search?key=pk.8732c5108a9f07f45b53e825a07c13a8&q=${encodeURIComponent(fullAddr)}&format=json&limit=1`);
-                                if (!geoRes.ok) {
-                                    geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddr)}&limit=1`);
-                                }
-
-                                const geoData = await geoRes.json();
-
-                                if (geoData && geoData.length > 0) {
-
-                                    lat = parseFloat(geoData[0].lat);
-
-                                    lng = parseFloat(geoData[0].lon);
-
-                                }
-
-                            } catch (eGeo) {
-
-                                console.error('Geocoding failed for imported row:', fullAddr, eGeo);
-
-                            }
-
-                        }
-
-                    }
-
-
-
-                    // Fallback to office coordinates only if geocoding also returned no match
-
-                    if (isNaN(lat) || isNaN(lng)) {
-
-                        lat = 51.5073323;
-
-                        lng = 7.4047794;
-
-                    }
-
-
 
                     const clientObj = {
-
                         id: maxId,
-
                         name: String(name),
-
                         address: String(address || `${street}, ${plz} ${city}`.trim()),
-
                         plz: String(plz),
-
                         city: String(city),
-
                         street: String(street),
-
                         tour: String(tour),
-
                         lat: lat,
-
                         lng: lng
-
                     };
-
                     db.push(clientObj);
-
                     addedCount++;
-
                 }
 
-
-
                 saveLocalClients(db);
-
                 const msgTemplate = (TRANSLATIONS[currentLang] || TRANSLATIONS.de).excel_import_success || 'Успешно импортировано клиентов: {count}!';
-
                 alert(msgTemplate.replace('{count}', addedCount));
-
                 await fetchClients();
-
                 closeSettingsMenu();
-
             } catch (err) {
-
                 console.error('Error parsing Excel file:', err);
-
                 alert('Ошибка чтения файла Excel: ' + (err.message || 'неизвестная ошибка'));
-
             } finally {
-
                 event.target.value = '';
-
             }
-
         }
-
-
 
         function exportClientsToExcel() {
 
