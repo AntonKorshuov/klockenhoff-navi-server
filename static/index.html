@@ -3687,46 +3687,18 @@
             const optLight = document.getElementById('opt-theme-light');
             const optDark = document.getElementById('opt-theme-dark');
             const optMono = document.getElementById('opt-theme-mono');
-            const t = TRANSLATIONS[currentLang] || TRANSLATIONS.de;
+            
+            let t = {};
+            if (typeof translations !== 'undefined' && translations[currentLang]) {
+                t = translations[currentLang];
+            } else if (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS[currentLang]) {
+                t = TRANSLATIONS[currentLang];
+            }
 
             if (optLight) optLight.textContent = t.theme_light || '☀️ Classic Light';
             if (optDark) optDark.textContent = t.theme_dark || '🌙 Night Dark';
             if (optMono) optMono.textContent = t.theme_mono || '🔳 Monochrome';
         }
-
-            });
-
-
-
-            if (currentTheme === 'dark' && btnDark) {
-
-                btnDark.style.background = 'var(--primary)';
-
-                btnDark.style.color = 'white';
-
-                btnDark.style.border = '2px solid var(--primary)';
-
-            } else if (currentTheme === 'mono' && btnMono) {
-
-                btnMono.style.background = '#222222';
-
-                btnMono.style.color = 'white';
-
-                btnMono.style.border = '2px solid #000000';
-
-            } else if (btnLight) {
-
-                btnLight.style.background = 'var(--primary)';
-
-                btnLight.style.color = 'white';
-
-                btnLight.style.border = '2px solid var(--primary)';
-
-            }
-
-        }
-
-
 
         function changeLanguage(lang) {
 
