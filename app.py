@@ -44,14 +44,18 @@ def save_clients(data):
 def serve_index():
     return send_from_directory('static', 'index.html')
 
+@app.route('/manifest.json')
+@app.route('/static/manifest.json')
+def serve_manifest():
+    return send_from_directory('static', 'manifest.json')
+
 @app.route('/developer_ak_logo.svg')
 def download_logo_svg():
     return send_from_directory('static', 'developer_ak_logo.svg', as_attachment=True)
 
-@app.route('/Klockenhoff_NAVI.apk')
-@app.route('/NAVI.apk')
+@app.route('/AKWAY_v2.142.apk')
 def download_apk():
-    return send_from_directory('static', 'NAVI.apk', as_attachment=True)
+    return send_from_directory('static', 'AKWAY_v2.142.apk', as_attachment=True)
 
 @app.route('/Klockenhoff_Clients.xlsx')
 def download_excel():
